@@ -1,1 +1,122 @@
-1
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>100-Piece Jigsaw Puzzle</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        #puzzle-container {
+            display: grid;
+            grid-template-columns: repeat(10, 60px); /* 10 columns for 100 pieces */
+            gap: 2px;
+            margin-top: 20px;
+        }
+
+        .puzzle-piece {
+            width: 60px;
+            height: 60px;
+            background-size: 600px 600px; /* Adjust for the full 10x10 grid */
+            background-color: #ccc; /* Fallback color */
+            cursor: pointer;
+            position: relative;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 24px;
+            color: green;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Jigsaw Puzzle</h1>
+    <div id="puzzle-container"></div>
+    <div id="message" class="hidden">Will you be my girlfriend?</div>
+
+    <script>
+        const puzzleContainer = document.getElementById('puzzle-container');
+        const message = document.getElementById('message');
+
+        const pieces = [];
+        const gridSize = 10; // 10x10 grid for 100 pieces
+        const totalPieces = gridSize * gridSize;
+        const imageSrc = '/workspaces/Jigsaw/strawberry.png'; // Local path to the strawberry image
+
+        function createPuzzle() {
+            for (let i = 0; i < totalPieces; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'puzzle-piece';
+                piece.style.backgroundImage = `url(${imageSrc})`;
+                piece.style.backgroundPosition = `${-(i % gridSize) * 60}px ${-Math.floor(i / gridSize) * 60}px`;
+                piece.setAttribute('data-index', i);
+                piece.draggable = true;
+                piece.addEventListener('dragstart', dragStart);
+                piece.addEventListener('dragover', dragOver);
+                piece.addEventListener('drop', drop);
+                pieces.push(piece);
+            }
+            shufflePieces();
+            pieces.forEach(piece => puzzleContainer.appendChild(piece));
+        }
+
+        function shufflePieces() {
+            for (let i = pieces.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
+            }
+        }
+
+        function dragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.index);
+        }
+
+        function dragOver(e) {
+            e.preventDefault();
+        }
+
+        function drop(e) {
+            e.preventDefault();
+            const draggedIndex = e.dataTransfer.getData('text/plain');
+            const targetIndex = e.target.dataset.index;
+            swapPieces(draggedIndex, targetIndex);
+            checkCompletion();
+        }
+
+        function swapPieces(index1, index2) {
+            const temp = pieces[index1];
+            pieces[index1] = pieces[index2];
+            pieces[index2] = temp;
+
+            puzzleContainer.innerHTML = '';
+            pieces.forEach(piece => puzzleContainer.appendChild(piece));
+        }
+
+        function checkCompletion() {
+            if (pieces.every((piece, index) => piece.dataset.index == index)) {
+                message.classList.remove('hidden');
+            }
+        }
+
+        window.addEventListener('load', () => {
+            const img = new Image();
+            img.src = imageSrc;
+            img.onload = createPuzzle;
+            img.onerror = () => {
+                alert("Image not found. Please make sure 'strawberry.png' is in the same folder as this HTML file.");
+            };
+        });
+    </script>
+</body>
+</html>
+
